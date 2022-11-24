@@ -1,0 +1,48 @@
+.w-220 {
+    width: 220px;
+}
+
+.multi-select select {
+    display: none;
+}
+
+.multi-select .list-option {
+    position: relative;
+}
+
+.multi-select #select-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.multi-select .list-option.selected {
+    background-color: #87cefa4f;
+}
+
+.multi-select #select-search {
+    width: 100%;
+    background-color: #fff;
+    border: 1px solid #d3d3d3;
+}
+
+.multi-select .place-holder {
+    opacity: 0.6;
+}
+
+.multi-select .multi-select-list-wrap {
+    display: none;
+}
+.close-icon, .multi-select .list-option {
+    cursor: pointer;
+}
+
+.multi-select .list-option.focused, .multi-select .list-option:hover {
+    background-color: lightskyblue;
+}
+
+.selected-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
