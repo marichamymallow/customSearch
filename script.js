@@ -10,6 +10,7 @@ $(function () {
                 selectElem: $(this),
                 hideCheckBox: false,
                 closeOnCheck: false,
+    
                 openMenu: function (elem, isPlugin) {
                     if (isPlugin) {
                         $(elem).removeClass("opened");
@@ -27,15 +28,29 @@ $(function () {
                         $(elem).slideUp();
                     }
                 },
+                clickBtnTemplate: "",
+                searchTemplate: "",
                 loadingTemplate: `<div class="loading">Loading...</div>`,
                 submitBtn: false,
                 listType: "checkbox",
                 targetId: "",
                 opentType: 'click',
                 search: true,
+                popupStyles: '',
+                searchStyle: '',
+                optionLabelStyle: '',
+                listTemplate: '',
+                listStyle: '',
+                checkboxStyle: '',
+                hideSelected: false,
+                submitBtnStyle: '',
+                badgeStyle: '',
+                badgeColors: 'text-mild-green bg-mild-green-10 rounded-xl px-1.5 py-0.5',
+                cancelBtnstyle: '',
+                combineSelectorsTemplate: '',
                 onItemCheck: function () { }
             }, options)
-
+    
             return $(defaults.selectElem).each(function () {
                 if (defaults.hasOwnProperty(options) == true) {
                     var component = $(this);
@@ -43,50 +58,72 @@ $(function () {
                 } else {
                     const inputStyle = "position:absolute;width:100%;height:100%;top:0;left:0;opacity:0"
                     var elem = $(this);
-                    var searchArea = `<div class="multi-select">
-                <div class='multi-select-inner'>
-                    <button id='drop-btn'>Filter</button>
-                    <div id="selected-ids"></div>
-                    <div class="multi-select-list-wrap">
-                        <input id="select-search" placeholder="Search..." />
-                        <div class="selected-toggle">
-                            <div class="select-all-btn">
-                                <input type="checkbox" /><span>All</spa>
+                    $(elem).wrap("<div class='multi-select'></div>");
+                    $(elem).css('display', 'none');
+                    var searchArea = `
+                    <div class='multi-select-inner'>
+                        <button id='drop-btn'>Filter</button>
+                        <div id="selected-ids"></div>
+                        <div class="multi-select-list-wrap">
+                            <input id="select-search" placeholder="Search..." />
+                            <div class="selected-toggle">
+                                <div class="select-all-btn">
+                                    <input type="checkbox" /><span>All</spa>
+                                </div>
+                                <button class="deselect-btn">None</button>
                             </div>
-                            <button class="deselect-btn">None</button>
+                            <div id="select-list" style="margin-top: 15px"></div>
                         </div>
-                        <div id="select-list"></div>
-                    </div>  
-                    </div>
-                </div>`;
-                    $(elem).wrap(searchArea);
+                        </div>`;
+                    $(searchArea).insertAfter(elem);
                     //Global variable declartion
                     var parent = $(elem).parent().closest('.multi-select');
                     var selectOptions = $(elem).children();
                     var closeEvent = 'click';
                     var dropDownList = [];
                     var selectedValues = [];
+    
+                    if(defaults.clickBtnTemplate != '') {
+                        $(parent).find('#drop-btn').replaceWith(defaults.clickBtnTemplate);
+                    }
+    
+                    if(defaults.searchTemplate != "") {
+                        $(parent).find("#select-search").replaceWith(defaults.searchTemplate);
+                    }
+    
+                    if(defaults.combineSelectorsTemplate != "") {
+                        $(parent).find(".selected-toggle").replaceWith(defaults.combineSelectorsTemplate);
+                    }
                     const listElem = $(parent).find('#select-list'),
                         searchElem = $(parent).find("#select-search"),
-                        selectAll = $(parent).find('.select-all-btn input'),
-                        dropELem = $(parent).find('#drop-btn')
-                    deCheckElem = $(parent).find('.deselect-btn');
-
+                        selectAll = $(parent).find('.select-all-btn'),
+                        dropELem = $(parent).find('#drop-btn'),
+                        popUp = $(parent).find('.multi-select-list-wrap'),
+                        deCheckElem = $(parent).find('.deselect-btn');
+    
+                    if(defaults.popupStyles != '') {
+                        popUp.addClass(defaults.popupStyles);
+                    }
+    
+                    if(defaults.searchStyle != '') {
+                        searchElem.addClass(defaults.searchStyle);
+                    }
+    
                     $(parent).find('#select-list').prepend(defaults.loadingTemplate);
-
+    
                     if (defaults.targetId == "") {
                         defaults.targetId = $(parent).find('#selected-ids');
                     }
-
+    
                     if (defaults.listType != "checkbox") {
                         $(parent).find('.selected-toggle').remove();
                     }
-
+    
                     if (defaults.submitBtn) {
-                        var submitBtn = `<button id='submit'>Submit</button>`
+                        var submitBtn = `<div style="margin-top: 15px; text-align: right;"><button class="${defaults.cancelBtnstyle}" id="custom-search-close">Cancel</button></button><button id='submit' class="${defaults.submitBtnStyle}">Submit</button></div>`
                         $(parent).find('.multi-select-list-wrap').append(submitBtn);
                     }
-
+    
                     //Intializing Element
                     defaults.loading.call().then(
                         function (value) {
@@ -96,12 +133,12 @@ $(function () {
                             console.log(error);
                         }
                     )
-
+    
                     function create() {
                         $(parent).find('.loading').remove();
                         if (selectOptions.length > 0) {
                             //Creating Select List UI
-                            // Create List JSON 
+                            // Create List JSON
                             $(selectOptions).each(function () {
                                 var obj  = {};
                                 if($(this).attr("data-addition")) {
@@ -114,24 +151,41 @@ $(function () {
                                     dropDownList.push(obj);
                                 }
                             })
-
+    
                             // Looping list Items
                             $.each(dropDownList, function (key, item) {
                                 let id = Math.floor((Math.random() * 100000) + 1);
-                                var elem = `<div class='list-option' id="${id}">
-                                    <input type="${defaults.listType}" style=${defaults.hideCheckBox?inputStyle:""} name="${defaults.listType}" value="${item.val}"/>
-                                    <span class="option-name">${item.name}</span></div>`;
-                                $(listElem).append(elem);
+                                var elem = `<div class='list-option ${defaults.listStyle}' id="${id}">
+                                        <input type="${defaults.listType}" class="${defaults.checkboxStyle}" style=${defaults.hideCheckBox?inputStyle:""} name="${defaults.listType}" value="${item.val}"/>
+                                        <span class="option-name ${defaults.optionLabelStyle}">${item.name}</span></div>`;
+    
+                                if(defaults.listTemplate != '') {
+                                    var elem = $.parseHTML(defaults.listTemplate);
+                                    $(elem).attr("id", id);
+                                    $(elem).find('input').attr({type: defaults.listType, name: defaults.listType, value: item.val});
+                                    $(elem).find('.option-name').text(item.name);
+                                    $(listElem).append(elem);
+                                } else {
+                                    $(listElem).append(elem);
+                                }
+    
                                 if(item.addition) {
-                                    let additionData = item.addition.split(","); 
-                                    for(let i = 0; i<additionData.length;i++) {
-                                        let elem = `<span class="addition-badge">${additionData[i]}</span>`;
+                                    if(item.addition != []) {
+                                        var color = item.addition;
+                                        var style = typeof defaults.badgeColors == 'string' ? defaults.badgeColors : defaults.badgeColors[color];
+                                        let elem = `<div><span class="addition-badge ${style}">${color}</span></div>`;
                                         $('#'+id).append(elem);
+                                    }else {
+                                        let additionData = item.addition.split(",");
+                                        for(let i = 0; i<additionData.length;i++) {
+                                            let elem = `<div><span class="addition-badge ${defaults.badgeStyle}">${additionData[i]}</span></div>`;
+                                            $('#'+id).append(elem);
+                                        }
                                     }
                                 }
                             })
-
-
+    
+    
                             //Checkbox Click
                             $(parent).find('.list-option').on('click', function () {
                                 $(parent).find('.list-option').removeClass('focused');
@@ -155,37 +209,42 @@ $(function () {
                                     }
                                     $(this).find('input').removeClass('checked');
                                 }
+                                $(elem).val(selectedValues);
                                 if (!submitBtn) {
                                     defaults.onItemCheck.call(null, selectedValues);
                                     if (defaults.closeOnCheck) {
                                         defaults.closeMenu(parent, true);
                                     }
                                 }
-                                showSelected();
+                                if(!defaults.hideSelected)
+                                    showSelected();
                             })
-
-
-                            //submitBtn Click 
+    
+    
+                            //submitBtn Click
                             $(parent).find('#submit').on('click', function () {
-                                if (selectedValues.length > 0) {
-                                    defaults.onItemCheck.call(null, selectedValues);
-                                }
+                                defaults.onItemCheck.call(null, selectedValues);
+                                defaults.closeMenu(parent, true);
+                            })
+    
+                            //cancelBtn click
+                            $(parent).find("#custom-search-close").on('click', function (){
                                 defaults.closeMenu(parent, true);
                             })
                         }
                     }
-
+    
                     //open lists
                     $(dropELem).on(defaults.opentType, function () {
                         defaults.openMenu(parent, true);
                         $(searchElem).focus();
                     })
-
+    
                     // Close list
                     if (closeEvent == 'click') {
                         $(document).on(closeEvent, function (event) {
                             if (!($(event.target).closest(parent).length) && $(parent).hasClass("opened") && !($(event.target).hasClass('close-icon'))) {
-                                if(!defaults.submitBtn) 
+                                if(!defaults.submitBtn)
                                     defaults.closeMenu(parent, true);
                             }
                         });
@@ -196,7 +255,7 @@ $(function () {
                             }
                         })
                     }
-
+    
                     //Keydown events
                     $(document).on('keydown', function (event) {
                         if (event.key == "Enter" && $(parent).hasClass("opened")) {
@@ -206,11 +265,9 @@ $(function () {
                             }
                         }
                         if (event.key == "Escape" && $(parent).hasClass("opened")) {
-                            if(!defaults.submitBtn) {
-                                $(parent).find('.list-option').removeClass('focused');
-                                $(parent).find('#select-search').blur();
-                                defaults.closeMenu(parent, true);
-                            }
+                            $(parent).find('.list-option').removeClass('focused');
+                            $(parent).find('#select-search').blur();
+                            defaults.closeMenu(parent, true);
                         }
                         if (event.key == "ArrowDown" && $(parent).hasClass("opened")) {
                             if ($(parent).find('.list-option').hasClass('focused')) {
@@ -229,7 +286,7 @@ $(function () {
                             }
                         }
                     });
-
+    
                     //Search Function
                     $(searchElem).on('keyup', function () {
                         var keyWord = $(this).val().toLowerCase();
@@ -248,8 +305,8 @@ $(function () {
                             })
                         }
                     })
-
-                    //Selected elements 
+    
+                    //Selected elements
                     function showSelected() {
                         $(defaults.targetId).empty();
                         if (selectedValues.length > 0) {
@@ -258,7 +315,7 @@ $(function () {
                                 $(defaults.targetId).append(badge);
                             })
                         }
-
+    
                         $(parent).find('.close-icon').on('click', function () {
                             var val = $(this).attr('data-href');
                             if (val) {
@@ -270,34 +327,32 @@ $(function () {
                             }
                         })
                     }
-
+    
                     // Check All
                     $(selectAll).on('click', function () {
-                        var elem = $(this);
                         selectedValues = [];
                         $(parent).find('.list-option input').each(function () {
                             var value = $(this).val();
                             $(this).parent().removeClass('selected');
-                            if ($(elem)[0].checked) {
-                                $(this).parent().addClass('selected');
-                                $(this).prop("checked", true);
-                                selectedValues.push(value);
-                            } else {
-                                $(this).prop("checked", false);
-                            }
+                            $(this).parent().addClass('selected');
+                            $(this).prop("checked", true);
+                            selectedValues.push(value);
                         })
-                        showSelected();
+                        if(!defaults.hideSelected)
+                            showSelected();
                     })
-
-                    // Decheck All 
+    
+                    // Decheck All
                     $(deCheckElem).on('click', function () {
                         selectedValues = [];
                         $(parent).find('.list-option input').each(function () {
                             $(this).prop("checked", false);
                             $(this).removeClass("checked");
+                            $(this).parent().removeClass('selected');
                             $(selectAll).prop("checked", false);
                         })
-                        showSelected();
+                        if(!defaults.hideSelected)
+                            showSelected();
                     })
                 }
             })
