@@ -13,19 +13,20 @@ $(function () {
     
                 openMenu: function (elem, isPlugin) {
                     if (isPlugin) {
-                        $(elem).removeClass("opened");
-                        $(elem).addClass("opened");
-                        $(elem).find('.multi-select-list-wrap').slideDown();
+                        if(!$(elem).hasClass("opened")) {
+                            $(elem).addClass("opened");
+                            $(elem).find('.multi-select-list-wrap').show();
+                        }
                     } else {
-                        $(elem).slideDown();
+                        $(elem).show();
                     }
                 },
                 closeMenu: function (elem, isPlugin) {
                     if (isPlugin) {
                         $(elem).removeClass("opened");
-                        $(elem).find('.multi-select-list-wrap').slideUp();
+                        $(elem).find('.multi-select-list-wrap').hide();
                     } else {
-                        $(elem).slideUp();
+                        $(elem).hide();
                     }
                 },
                 clickBtnTemplate: "",
@@ -187,26 +188,24 @@ $(function () {
     
     
                             //Checkbox Click
-                            $(parent).find('.list-option').on('click', function () {
+                            $(parent).find('.list-option').on('click', function (event) {
                                 $(parent).find('.list-option').removeClass('focused');
                                 $(this).addClass('focused');
                                 var value = $(this).find('input').val();
                                 if (defaults.listType == 'radio') {
                                     selectedValues = [];
                                 }
-                                if ($(this).find('input')[0].checked) {
-                                    if(defaults.hideCheckBox) {
-                                        $(this).addClass('selected');
-                                    }
+                                if ($(this).find('input')[0].checked == false) {
+                                    $(this).addClass('selected');
+                                    $(this).find('input').attr('checked', true);
                                     $(this).find('input').addClass('checked');
                                     selectedValues.push(value);
                                 } else {
                                     selectedValues = $.grep(selectedValues, function (n) {
                                         return n != value;
                                     })
-                                    if(defaults.hideCheckBox) {
-                                        $(this).removeClass('selected');
-                                    }
+                                    $(this).removeClass('selected');
+                                    $(this).find('input').removeAttr('checked');
                                     $(this).find('input').removeClass('checked');
                                 }
                                 $(elem).val(selectedValues);
@@ -244,8 +243,7 @@ $(function () {
                     if (closeEvent == 'click') {
                         $(document).on(closeEvent, function (event) {
                             if (!($(event.target).closest(parent).length) && $(parent).hasClass("opened") && !($(event.target).hasClass('close-icon'))) {
-                                if(!defaults.submitBtn)
-                                    defaults.closeMenu(parent, true);
+                                defaults.closeMenu(parent, true);
                             }
                         });
                     } else {
@@ -272,8 +270,10 @@ $(function () {
                         if (event.key == "ArrowDown" && $(parent).hasClass("opened")) {
                             if ($(parent).find('.list-option').hasClass('focused')) {
                                 var ele = $(parent).find('.list-option.focused');
-                                $(ele).removeClass('focused');
-                                $(ele).next().addClass('focused');
+                                if($(ele).next('.list-option').length>0) {
+                                    $(ele).removeClass('focused');
+                                    $(ele).next('.list-option').addClass('focused');
+                                }
                             } else {
                                 $(parent).find('.list-option:first-child').addClass('focused');
                             }
@@ -281,8 +281,10 @@ $(function () {
                         if (event.key == "ArrowUp" && $(parent).hasClass("opened")) {
                             if ($(parent).find('.list-option').hasClass('focused')) {
                                 var ele = $(parent).find('.list-option.focused');
-                                $(ele).removeClass('focused');
-                                $(ele).prev().addClass('focused');
+                                if($(ele).prev('.list-option').length>0) {
+                                    $(ele).removeClass('focused');
+                                    $(ele).prev('.list-option').addClass('focused');
+                                }
                             }
                         }
                     });
